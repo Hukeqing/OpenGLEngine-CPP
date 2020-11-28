@@ -7,15 +7,21 @@
 
 #include "../define.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+
+#include "../stb/stb_image.h"
 
 class Renderer {
     friend Object;
 private:
-    const char *vertexFile, *fragmentFile;
     bool complete = false;
+    const char *vertexFile, *fragmentFile;
     int shaderProgram{};
 
-    void openFile(const char *filePath, string &res) {
+    vector<pair<string, float>> textures;
+    vector<unsigned int> textureId;
+
+    void openShaderFile(const char *filePath, string &res) {
         res.clear();
         ifstream shaderFile;
         shaderFile.exceptions(ifstream::failbit | ifstream::badbit);
@@ -31,11 +37,42 @@ private:
         }
     }
 
+    int loadImage(const char *filePath) {
+        unsigned int texture;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_2D, texture);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        int width, height, nrChannels;
+        unsigned char *data = stbi_load(filePath, &width, &height, &nrChannels, 0);
+        if (data) {
+            glTexImage2D(GL_TEXTURE_2D, 0, nrChannels == 3 ? GL_RGB : GL_RGBA, width, height, 0,
+                         nrChannels == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
+            glGenerateMipmap(GL_TEXTURE_2D);
+        } else {
+            cerr << "Failed to load texture" << endl;
+            exit(-1);
+        }
+        stbi_image_free(data);
+        return texture;
+    }
+
     bool init() {
         string vertexCode, fragmentCode;
-        openFile(vertexFile, vertexCode);
-        openFile(fragmentFile, fragmentCode);
-        return compile(vertexCode.data(), fragmentCode.data());
+        openShaderFile(vertexFile, vertexCode);
+        openShaderFile(fragmentFile, fragmentCode);
+        if (!compile(vertexCode.data(), fragmentCode.data())) return false;
+        textureId.resize(textures.size());
+        stbi_set_flip_vertically_on_load(true);
+        glUseProgram(shaderProgram);
+        for (int i = 0; i < textures.size(); ++i) {
+            textureId[i] = loadImage(textures[i].first.data());
+            glUniform1i(glGetUniformLocation(shaderProgram, ("texture" + to_string(i)).data()), i);
+        }
+        glUseProgram(0);
+        return true;
     }
 
     bool compile(const char *vertexCode, const char *fragmentCode) {
@@ -77,7 +114,13 @@ private:
     }
 
     void use() {
-        if (complete || init()) glUseProgram(shaderProgram);
+        if (complete || init()) {
+            for (int i = 0; i < textureId.size(); ++i) {
+                glActiveTexture(GL_TEXTURE0 + i);
+                glBindTexture(GL_TEXTURE_2D, textureId[i]);
+            }
+            glUseProgram(shaderProgram);
+        }
     }
 
 public:
@@ -91,6 +134,24 @@ public:
     Renderer(const string &v, const string &f) {
         vertexFile = v.data();
         fragmentFile = f.data();
+    }
+
+    void setTexture(const vector<pair<string, float>> &t) {
+        textures = t;
+        if (!complete) return;
+        textureId.resize(t.size());
+        glUseProgram(shaderProgram);
+        for (int i = 0; i < textures.size(); ++i) {
+            textureId[i] = loadImage(textures[i].first.data());
+            glUniform1i(glGetUniformLocation(shaderProgram, ("texture" + to_string(i)).data()), i);
+        }
+        glUseProgram(0);
+    }
+
+    void changeTexture(const pair<string, float> &t, int id) {
+        textures[id] = t;
+        if (!complete) return;
+        textureId[id] = loadImage(t.first.data());
     }
 
     void setUniform(const string &key, int *value, int len) {

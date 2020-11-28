@@ -36,6 +36,12 @@ cmake-build-debug
 cmake-build-release
 .idea
 
+# OpenGL
 /include/
 /src/main/common/glad.c
 /lib/
+
+# Test
+main.cpp
+*.jpg
+*.png

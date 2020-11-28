@@ -6,6 +6,6 @@ set(CMAKE_CXX_STANDARD 11)
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/include)
 link_directories(${PROJECT_SOURCE_DIR}/lib)
 
-add_executable(OpenGLEngine main.cpp src/stdopengl.h src/main/common/window.h src/main/component/renderer.h src/main/component/filter.h src/main/common/object.h src/main/define.h src/main/component/shader.h)
+add_executable(OpenGLEngine main.cpp src/stdopengl.h src/main/common/window.h src/main/component/renderer.h src/main/component/filter.h src/main/common/object.h src/main/define.h src/main/stb/stb_image.h)
 
 target_link_libraries(OpenGLEngine ${PROJECT_SOURCE_DIR}/lib/glfw3.dll)
