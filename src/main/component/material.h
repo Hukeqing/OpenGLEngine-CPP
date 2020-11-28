@@ -15,8 +15,11 @@ class Material {
     friend Renderer;
     bool complete = false;
     unsigned shaderProgram;
-    vector<pair<string, float>> textures;
-    vector<unsigned int> textureId;
+
+    glm::vec3 color;
+    string diffuse, specular;
+    unsigned diffuseId, specularId;
+    float shininess;
 
     static unsigned loadImage(const char *filePath) {
         unsigned texture;
@@ -41,44 +44,59 @@ class Material {
     }
 
     void init(unsigned sp) {
+        if (complete) return;
         shaderProgram = sp;
-        textureId.resize(textures.size());
         stbi_set_flip_vertically_on_load(true);
         glUseProgram(shaderProgram);
-        for (int i = 0; i < textures.size(); ++i) {
-            textureId[i] = loadImage(textures[i].first.data());
-            glUniform1i(glGetUniformLocation(shaderProgram, ("texture" + to_string(i)).data()), i);
-        }
+        if (!diffuse.empty()) diffuseId = loadImage(diffuse.data());
+        if (!specular.empty()) specularId = loadImage(specular.data());
+        glUniform1i(glGetUniformLocation(shaderProgram, "material.diffuse"), 0);
+        glUniform1i(glGetUniformLocation(shaderProgram, "material.specular"), 1);
         glUseProgram(0);
         complete = true;
     }
 
     void use() {
-        for (int i = 0; i < textureId.size(); ++i) {
-            glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, textureId[i]);
+        int flag = 0;
+        if (!diffuse.empty()) {
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, diffuseId);
+            flag |= 1;
         }
-    }
-
-public:
-    void setTexture(const vector<pair<string, float>> &t) {
-        textures = t;
-        if (!complete) return;
-        textureId.resize(t.size());
+        if (!specular.empty()) {
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, specularId);
+            flag |= 2;
+        }
         glUseProgram(shaderProgram);
-        for (int i = 0; i < textures.size(); ++i) {
-            textureId[i] = loadImage(textures[i].first.data());
-            glUniform1i(glGetUniformLocation(shaderProgram, ("texture" + to_string(i)).data()), i);
-        }
+        glUniform3f(glGetUniformLocation(shaderProgram, "material.color"), color.r, color.g, color.b);
+        glUniform1f(glGetUniformLocation(shaderProgram, "material.shininess"), shininess);
+        glUniform1i(glGetUniformLocation(shaderProgram, "material.flag"), flag);
         glUseProgram(0);
     }
 
-    void changeTexture(const pair<string, float> &t, int id) {
-        textures[id] = t;
+public:
+    void setDiffuse(const string &t) {
+        diffuse = t;
         if (!complete) return;
-        textureId[id] = loadImage(t.first.data());
+        glUseProgram(shaderProgram);
+        if (!diffuse.empty()) diffuseId = loadImage(diffuse.data());
+        glUseProgram(0);
     }
 
+    void setSpecular(const string &t) {
+        specular = t;
+        if (!complete) return;
+        glUseProgram(shaderProgram);
+        if (!specular.empty()) specularId = loadImage(specular.data());
+        glUseProgram(0);
+    }
+
+    void setColor(float r, float g, float b) {
+        color = glm::vec3(r, g, b);
+    }
+
+    void setShininess(float s) { shininess = s; }
 };
 
 #endif //OPENGL_ENGINE_MATERIAL_H

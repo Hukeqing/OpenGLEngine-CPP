@@ -78,6 +78,7 @@ public:
         glEnable(GL_DEPTH_TEST);
 
         while (!glfwWindowShouldClose(window)) loop();
+        std::cout << glGetError() << std::endl;
         glfwTerminate();
         return true;
     }

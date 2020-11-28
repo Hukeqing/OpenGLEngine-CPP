@@ -9,6 +9,7 @@
 
 class Light {
 public:
+    glm::vec3 color;
     float ambient, diffuse, specular;
 };
 

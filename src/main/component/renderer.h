@@ -79,12 +79,6 @@ private:
         return true;
     }
 
-    void use() {
-        if (!complete && !init()) return;
-        material->use();
-        glUseProgram(shaderProgram);
-    }
-
     void use(const glm::mat4 model, const glm::mat4 &view, const glm::mat4 &projection,
              const glm::vec3 viewPos,
              const vector<DirectionLight *> &directionLights,
@@ -111,6 +105,10 @@ private:
                        directionLights[i]->direction.x,
                        directionLights[i]->direction.y,
                        directionLights[i]->direction.z);
+            setUniform("dirLights[" + to_string(i) + "].color",
+                       directionLights[i]->color.r,
+                       directionLights[i]->color.g,
+                       directionLights[i]->color.b);
             setUniform("dirLights[" + to_string(i) + "].ambient",
                        directionLights[i]->ambient,
                        directionLights[i]->ambient,
@@ -129,6 +127,10 @@ private:
                        pointLights[i]->position.x,
                        pointLights[i]->position.y,
                        pointLights[i]->position.z);
+            setUniform("pointLights[" + to_string(i) + "].color",
+                       pointLights[i]->color.r,
+                       pointLights[i]->color.g,
+                       pointLights[i]->color.b);
             setUniform("pointLights[" + to_string(i) + "].constant", pointLights[i]->constant);
             setUniform("pointLights[" + to_string(i) + "].linear", pointLights[i]->linear);
             setUniform("pointLights[" + to_string(i) + "].quadratic", pointLights[i]->quadratic);
@@ -154,6 +156,10 @@ private:
                        spotLights[i]->direction.x,
                        spotLights[i]->direction.y,
                        spotLights[i]->direction.z);
+            setUniform("spotLights[" + to_string(i) + "].color",
+                       spotLights[i]->color.r,
+                       spotLights[i]->color.g,
+                       spotLights[i]->color.b);
             setUniform("spotLights[" + to_string(i) + "].cutOff", spotLights[i]->cutOff);
             setUniform("spotLights[" + to_string(i) + "].outerCutOff", spotLights[i]->outerCutOff);
             setUniform("spotLights[" + to_string(i) + "].constant", spotLights[i]->constant);
@@ -172,6 +178,10 @@ private:
                        spotLights[i]->specular,
                        spotLights[i]->specular);
         }
+    }
+
+    void unUse() {
+        glUseProgram(0);
     }
 
 public:
