@@ -6,6 +6,10 @@
 #define OPENGL_ENGINE_WINDOW_H
 
 #include "../define.h"
+#include "../component/direction_light.h"
+#include "../component/point_light.h"
+#include "../component/spot_light.h"
+
 #include "object.h"
 #include "camera.h"
 
@@ -15,6 +19,9 @@ private:
     string title;
     GLFWwindow *window{};
     vector<Object *> objectList;
+    vector<DirectionLight *> directionLights;
+    vector<PointLight *> pointLights;
+    vector<SpotLight *> spotLights;
     Camera *camera{};
 
     bool init() {
@@ -46,7 +53,10 @@ private:
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear((unsigned) GL_COLOR_BUFFER_BIT | (unsigned) GL_DEPTH_BUFFER_BIT);
 
-        for (auto &obj : objectList) obj->render(camera->getView(), camera->getProjection());
+        for (auto &obj : objectList)
+            obj->render(camera->getView(), camera->getProjection(),
+                        camera->transform.getPosition(),
+                        directionLights, pointLights, spotLights);
 
 //            processInput(window);
         glfwSwapBuffers(window);
@@ -75,6 +85,12 @@ public:
     void addObj(Object *obj) {
         objectList.push_back(obj);
     }
+
+    void addDirLight(DirectionLight *light) { directionLights.push_back(light); }
+
+    void addPointLight(PointLight *light) { pointLights.push_back(light); }
+
+    void addSpotLight(SpotLight *light) { spotLights.push_back(light); }
 };
 
 #endif //OPENGL_ENGINE_WINDOW_H

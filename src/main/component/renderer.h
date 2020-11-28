@@ -6,20 +6,15 @@
 #define OPENGL_ENGINE_RENDERER_H
 
 #include "../define.h"
-
-#define STB_IMAGE_IMPLEMENTATION
-
-#include "../stb/stb_image.h"
+#include "material.h"
 
 class Renderer {
     friend Object;
 private:
     bool complete = false;
     const char *vertexFile, *fragmentFile;
+    Material *material;
     int shaderProgram{};
-
-    vector<pair<string, float>> textures;
-    vector<unsigned int> textureId;
 
     void openShaderFile(const char *filePath, string &res) {
         res.clear();
@@ -37,41 +32,12 @@ private:
         }
     }
 
-    int loadImage(const char *filePath) {
-        unsigned int texture;
-        glGenTextures(1, &texture);
-        glBindTexture(GL_TEXTURE_2D, texture);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        int width, height, nrChannels;
-        unsigned char *data = stbi_load(filePath, &width, &height, &nrChannels, 0);
-        if (data) {
-            glTexImage2D(GL_TEXTURE_2D, 0, nrChannels == 3 ? GL_RGB : GL_RGBA, width, height, 0,
-                         nrChannels == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
-            glGenerateMipmap(GL_TEXTURE_2D);
-        } else {
-            cerr << "Failed to load texture" << endl;
-            exit(-1);
-        }
-        stbi_image_free(data);
-        return texture;
-    }
-
     bool init() {
         string vertexCode, fragmentCode;
         openShaderFile(vertexFile, vertexCode);
         openShaderFile(fragmentFile, fragmentCode);
         if (!compile(vertexCode.data(), fragmentCode.data())) return false;
-        textureId.resize(textures.size());
-        stbi_set_flip_vertically_on_load(true);
-        glUseProgram(shaderProgram);
-        for (int i = 0; i < textures.size(); ++i) {
-            textureId[i] = loadImage(textures[i].first.data());
-            glUniform1i(glGetUniformLocation(shaderProgram, ("texture" + to_string(i)).data()), i);
-        }
-        glUseProgram(0);
+        material->init(shaderProgram);
         return true;
     }
 
@@ -115,24 +81,97 @@ private:
 
     void use() {
         if (!complete && !init()) return;
-        for (int i = 0; i < textureId.size(); ++i) {
-            glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, textureId[i]);
-        }
+        material->use();
         glUseProgram(shaderProgram);
     }
 
-    void use(const glm::mat4 model, const glm::mat4 &view, const glm::mat4 &projection) {
+    void use(const glm::mat4 model, const glm::mat4 &view, const glm::mat4 &projection,
+             const glm::vec3 viewPos,
+             const vector<DirectionLight *> &directionLights,
+             const vector<PointLight *> &pointLights,
+             const vector<SpotLight *> &spotLights) {
         if (!complete && !init()) return;
-        for (int i = 0; i < textureId.size(); ++i) {
-            glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, textureId[i]);
-        }
+
+        material->use();
+
         glUseProgram(shaderProgram);
 
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+        setUniform("model", model);
+        setUniform("view", view);
+        setUniform("projection", projection);
+
+        setUniform("dirCount", directionLights.size());
+        setUniform("pointCount", pointLights.size());
+        setUniform("spotCount", spotLights.size());
+
+        setUniform("viewPos", viewPos.x, viewPos.y, viewPos.z);
+
+        for (int i = 0; i < directionLights.size(); ++i) {
+            setUniform("dirLights[" + to_string(i) + "].direction",
+                       directionLights[i]->direction.x,
+                       directionLights[i]->direction.y,
+                       directionLights[i]->direction.z);
+            setUniform("dirLights[" + to_string(i) + "].ambient",
+                       directionLights[i]->ambient,
+                       directionLights[i]->ambient,
+                       directionLights[i]->ambient);
+            setUniform("dirLights[" + to_string(i) + "].diffuse",
+                       directionLights[i]->diffuse,
+                       directionLights[i]->diffuse,
+                       directionLights[i]->diffuse);
+            setUniform("dirLights[" + to_string(i) + "].specular",
+                       directionLights[i]->specular,
+                       directionLights[i]->specular,
+                       directionLights[i]->specular);
+        }
+        for (int i = 0; i < pointLights.size(); ++i) {
+            setUniform("pointLights[" + to_string(i) + "].position",
+                       pointLights[i]->position.x,
+                       pointLights[i]->position.y,
+                       pointLights[i]->position.z);
+            setUniform("pointLights[" + to_string(i) + "].constant", pointLights[i]->constant);
+            setUniform("pointLights[" + to_string(i) + "].linear", pointLights[i]->linear);
+            setUniform("pointLights[" + to_string(i) + "].quadratic", pointLights[i]->quadratic);
+            setUniform("pointLights[" + to_string(i) + "].ambient",
+                       pointLights[i]->ambient,
+                       pointLights[i]->ambient,
+                       pointLights[i]->ambient);
+            setUniform("pointLights[" + to_string(i) + "].diffuse",
+                       pointLights[i]->diffuse,
+                       pointLights[i]->diffuse,
+                       pointLights[i]->diffuse);
+            setUniform("pointLights[" + to_string(i) + "].specular",
+                       pointLights[i]->specular,
+                       pointLights[i]->specular,
+                       pointLights[i]->specular);
+        }
+        for (int i = 0; i < spotLights.size(); ++i) {
+            setUniform("spotLights[" + to_string(i) + "].position",
+                       spotLights[i]->position.x,
+                       spotLights[i]->position.y,
+                       spotLights[i]->position.z);
+            setUniform("spotLights[" + to_string(i) + "].direction",
+                       spotLights[i]->direction.x,
+                       spotLights[i]->direction.y,
+                       spotLights[i]->direction.z);
+            setUniform("spotLights[" + to_string(i) + "].cutOff", spotLights[i]->cutOff);
+            setUniform("spotLights[" + to_string(i) + "].outerCutOff", spotLights[i]->outerCutOff);
+            setUniform("spotLights[" + to_string(i) + "].constant", spotLights[i]->constant);
+            setUniform("spotLights[" + to_string(i) + "].linear", spotLights[i]->linear);
+            setUniform("spotLights[" + to_string(i) + "].quadratic", spotLights[i]->quadratic);
+            setUniform("spotLights[" + to_string(i) + "].ambient",
+                       spotLights[i]->ambient,
+                       spotLights[i]->ambient,
+                       spotLights[i]->ambient);
+            setUniform("spotLights[" + to_string(i) + "].diffuse",
+                       spotLights[i]->diffuse,
+                       spotLights[i]->diffuse,
+                       spotLights[i]->diffuse);
+            setUniform("spotLights[" + to_string(i) + "].specular",
+                       spotLights[i]->specular,
+                       spotLights[i]->specular,
+                       spotLights[i]->specular);
+        }
     }
 
 public:
@@ -148,58 +187,30 @@ public:
         fragmentFile = f.data();
     }
 
-    void setTexture(const vector<pair<string, float>> &t) {
-        textures = t;
-        if (!complete) return;
-        textureId.resize(t.size());
-        glUseProgram(shaderProgram);
-        for (int i = 0; i < textures.size(); ++i) {
-            textureId[i] = loadImage(textures[i].first.data());
-            glUniform1i(glGetUniformLocation(shaderProgram, ("texture" + to_string(i)).data()), i);
-        }
-        glUseProgram(0);
+    void setMaterial(Material *m) { material = m; }
+
+    void setUniform(const string &key, const glm::mat4 &value) {
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, key.data()), 1, GL_FALSE, glm::value_ptr(value));
     }
 
-    void changeTexture(const pair<string, float> &t, int id) {
-        textures[id] = t;
-        if (!complete) return;
-        textureId[id] = loadImage(t.first.data());
+    void setUniform(const string &key, const int value) {
+        glUniform1i(glGetUniformLocation(shaderProgram, key.data()), value);
     }
 
-    void setUniform(const string &key, int *value, int len) {
-        int location = glGetUniformLocation(shaderProgram, key.data());
-        switch (len) {
-            case 1:
-                glUniform1i(location, value[0]);
-                break;
-            case 2:
-                glUniform2i(location, value[0], value[1]);
-                break;
-            case 3:
-                glUniform3i(location, value[0], value[1], value[2]);
-                break;
-            case 4:
-                glUniform4i(location, value[0], value[1], value[2], value[3]);
-                break;
-        }
+    void setUniform(const string &key, int a, int b) {
+        glUniform2i(glGetUniformLocation(shaderProgram, key.data()), a, b);
     }
 
-    void setUniform(const string &key, float *value, int len) {
-        int location = glGetUniformLocation(shaderProgram, key.data());
-        switch (len) {
-            case 1:
-                glUniform1f(location, value[0]);
-                break;
-            case 2:
-                glUniform2f(location, value[0], value[1]);
-                break;
-            case 3:
-                glUniform3f(location, value[0], value[1], value[2]);
-                break;
-            case 4:
-                glUniform4f(location, value[0], value[1], value[2], value[3]);
-                break;
-        }
+    void setUniform(const string &key, int a, int b, int c) {
+        glUniform3i(glGetUniformLocation(shaderProgram, key.data()), a, b, c);
+    }
+
+    void setUniform(const string &key, float a, float b, float c) {
+        glUniform3f(glGetUniformLocation(shaderProgram, key.data()), a, b, c);
+    }
+
+    void setUniform(const string &key, int a, int b, int c, int d) {
+        glUniform4i(glGetUniformLocation(shaderProgram, key.data()), a, b, c, d);
     }
 };
 

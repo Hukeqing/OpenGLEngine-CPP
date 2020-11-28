@@ -18,9 +18,13 @@ private:
     Renderer *renderer{};
     Transform *transform{};
 
-    void render(const glm::mat4 &view, const glm::mat4 &projection) {
+    void render(const glm::mat4 &view, const glm::mat4 &projection,
+                const glm::vec3 viewPos,
+                const vector<DirectionLight *> &directionLights,
+                const vector<PointLight *> &pointLights,
+                const vector<SpotLight *> &spotLights) {
         if (!complete) if (!init()) exit(-1);
-        renderer->use(transform->getModel(), view, projection);
+        renderer->use(transform->getModel(), view, projection, viewPos, directionLights, pointLights, spotLights);
         filter->draw();
     }
 

@@ -27,4 +27,14 @@ class Camera;
 
 class Transform;
 
+class Light;
+
+class DirectionLight;
+
+class PointLight;
+
+class SpotLight;
+
+class Material;
+
 #endif //OPENGL_ENGINE_DEFINE_H
