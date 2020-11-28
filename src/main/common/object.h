@@ -8,6 +8,7 @@
 #include "../define.h"
 #include "../component/filter.h"
 #include "../component/renderer.h"
+#include "../component/transform.h"
 
 class Object {
     friend Window;
@@ -15,14 +16,16 @@ private:
     bool complete = false;
     Filter *filter{};
     Renderer *renderer{};
+    Transform *transform{};
 
-    void render() {
+    void render(const glm::mat4 &view, const glm::mat4 &projection) {
         if (!complete) if (!init()) exit(-1);
-        renderer->use();
+        renderer->use(transform->getModel(), view, projection);
         filter->draw();
     }
 
     bool init() {
+        if (filter == nullptr || renderer == nullptr || transform == nullptr) return false;
         if (!renderer->init()) return false;
         filter->build();
         complete = true;
@@ -32,13 +35,13 @@ private:
 public:
     Object() = default;
 
-    void setFilter(Filter *f) {
-        filter = f;
-    }
+    void setFilter(Filter *f) { filter = f; }
 
-    void setRenderer(Renderer *r) {
-        renderer = r;
-    }
+    void setRenderer(Renderer *r) { renderer = r; }
+
+    void setTransform(Transform *t) { transform = t; }
+
+    Transform &getTransform() { return *transform; }
 };
 
 #endif //OPENGL_ENGINE_OBJECT_H

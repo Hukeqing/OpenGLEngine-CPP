@@ -9,6 +9,10 @@
 #include <GLFW/glfw3.h>
 #include <bits/stdc++.h>
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
+
 using namespace std;
 
 class Window;
@@ -18,5 +22,9 @@ class Filter;
 class Renderer;
 
 class Object;
+
+class Camera;
+
+class Transform;
 
 #endif //OPENGL_ENGINE_DEFINE_H

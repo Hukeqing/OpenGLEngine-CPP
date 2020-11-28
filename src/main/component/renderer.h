@@ -114,13 +114,25 @@ private:
     }
 
     void use() {
-        if (complete || init()) {
-            for (int i = 0; i < textureId.size(); ++i) {
-                glActiveTexture(GL_TEXTURE0 + i);
-                glBindTexture(GL_TEXTURE_2D, textureId[i]);
-            }
-            glUseProgram(shaderProgram);
+        if (!complete && !init()) return;
+        for (int i = 0; i < textureId.size(); ++i) {
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, textureId[i]);
         }
+        glUseProgram(shaderProgram);
+    }
+
+    void use(const glm::mat4 model, const glm::mat4 &view, const glm::mat4 &projection) {
+        if (!complete && !init()) return;
+        for (int i = 0; i < textureId.size(); ++i) {
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, textureId[i]);
+        }
+        glUseProgram(shaderProgram);
+
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, glm::value_ptr(model));
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, glm::value_ptr(view));
+        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
     }
 
 public:

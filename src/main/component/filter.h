@@ -51,7 +51,7 @@ private:
     void draw() const {
         glBindVertexArray(VAO);
         if (indices == nullptr)
-            glDrawArrays(GL_TRIANGLES, 0, indicesLen / stride);
+            glDrawArrays(GL_TRIANGLES, 0, verticesLen / stride);
         else
             glDrawElements(GL_TRIANGLES, indicesLen, GL_UNSIGNED_INT, nullptr);
         glBindVertexArray(0);

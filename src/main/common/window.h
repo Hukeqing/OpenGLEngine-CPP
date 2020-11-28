@@ -7,6 +7,7 @@
 
 #include "../define.h"
 #include "object.h"
+#include "camera.h"
 
 class Window {
 private:
@@ -14,6 +15,7 @@ private:
     string title;
     GLFWwindow *window{};
     vector<Object *> objectList;
+    Camera *camera{};
 
     bool init() {
         glfwInit();
@@ -42,9 +44,9 @@ private:
 
     bool loop() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear((unsigned) GL_COLOR_BUFFER_BIT | (unsigned) GL_DEPTH_BUFFER_BIT);
 
-        for (auto &obj : objectList) obj->render();
+        for (auto &obj : objectList) obj->render(camera->getView(), camera->getProjection());
 
 //            processInput(window);
         glfwSwapBuffers(window);
@@ -56,8 +58,15 @@ public:
 
     Window(int w, int h, string &t) : width(w), height(h), title(t) {}
 
+    void setCamera(Camera *c) {
+        camera = c;
+    }
+
     bool run() {
         if (!init()) return false;
+
+        glEnable(GL_DEPTH_TEST);
+
         while (!glfwWindowShouldClose(window)) loop();
         glfwTerminate();
         return true;
