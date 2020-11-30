@@ -68,7 +68,7 @@ private:
             obj->render(camera->getView(), camera->getProjection(),
                         camera->transform.getPosition(),
                         directionLights, pointLights, spotLights);
-        camera->getTransform().setRotation(0, (float) glfwGetTime() * 10 - 90, 0);
+//        objectList[0]->getTransform().setRotation((float) glfwGetTime() / 5, (float) glfwGetTime() / 3, 0);
 //            processInput(window);
         glfwSwapBuffers(window);
         glfwPollEvents();
@@ -79,9 +79,7 @@ public:
 
     Window(int w, int h, string &t) : width(w), height(h), title(t) {}
 
-    void setCamera(Camera *c) {
-        camera = c;
-    }
+    void setCamera(Camera *c) { camera = c; }
 
     bool run() {
         if (!init()) return false;
@@ -89,14 +87,12 @@ public:
         glEnable(GL_DEPTH_TEST);
 
         while (!glfwWindowShouldClose(window)) loop();
-        std::cout << glGetError() << std::endl;
+        cout << glGetError() << endl;
         glfwTerminate();
         return true;
     }
 
-    void addObj(Object *obj) {
-        objectList.push_back(obj);
-    }
+    void addObj(Object *obj) { objectList.push_back(obj); }
 
     void addDirLight(DirectionLight *light) { directionLights.push_back(light); }
 

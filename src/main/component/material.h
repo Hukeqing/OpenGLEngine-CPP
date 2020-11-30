@@ -14,7 +14,6 @@
 class Material {
     friend Renderer;
     bool complete = false;
-    unsigned shaderProgram;
 
     glm::vec3 color;
     vector<string> diffuse, specular;
@@ -79,23 +78,18 @@ class Material {
         return texture;
     }
 
-    void init(unsigned sp) {
+
+    void init() {
         if (complete) return;
-        shaderProgram = sp;
         stbi_set_flip_vertically_on_load(flip);
-        glUseProgram(shaderProgram);
         if (diffuse.size() == 1) diffuseId = loadImage(diffuse.front().data());
         else if (diffuse.size() == 6) diffuseId = loadCubeImage(diffuse);
         if (specular.size() == 1) specularId = loadImage(specular.front().data());
         else if (specular.size() == 6) specularId = loadCubeImage(specular);
-        glUniform1i(glGetUniformLocation(shaderProgram, "material.diffuse"), 0);
-        glUniform1i(glGetUniformLocation(shaderProgram, "skybox"), 0);
-        glUniform1i(glGetUniformLocation(shaderProgram, "material.specular"), 1);
-        glUseProgram(0);
         complete = true;
     }
 
-    void use() {
+    void use(unsigned shaderProgram) {
         int flag = 0;
         if (!diffuse.empty()) {
             glActiveTexture(GL_TEXTURE0);
@@ -119,9 +113,7 @@ public:
         diffuse.resize(1);
         diffuse[0] = t;
         if (!complete) return;
-        glUseProgram(shaderProgram);
         diffuseId = loadImage(t.data());
-        glUseProgram(0);
     }
 
     void setDiffuse(const string &rightImage, const string &leftImage,
@@ -130,18 +122,14 @@ public:
         diffuse.clear();
         diffuse = {rightImage, leftImage, topImage, bottomImage, backImage, frontImage};
         if (!complete) return;
-        glUseProgram(shaderProgram);
         diffuseId = loadCubeImage(diffuse);
-        glUseProgram(0);
     }
 
     void setSpecular(const string &t) {
         specular.resize(1);
         specular[0] = t;
         if (!complete) return;
-        glUseProgram(shaderProgram);
         if (!specular.empty()) specularId = loadImage(t.data());
-        glUseProgram(0);
     }
 
     void setSpecular(const string &rightImage, const string &leftImage,
@@ -150,9 +138,7 @@ public:
         specular.clear();
         specular = {rightImage, leftImage, topImage, bottomImage, backImage, frontImage};
         if (!complete) return;
-        glUseProgram(shaderProgram);
         specularId = loadCubeImage(specular);
-        glUseProgram(0);
     }
 
     void setColor(float r, float g, float b) {

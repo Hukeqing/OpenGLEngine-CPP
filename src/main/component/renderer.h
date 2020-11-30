@@ -50,15 +50,6 @@ private:
         }
     }
 
-    bool init() {
-        string vertexCode, fragmentCode;
-        openShaderFile(vertexFile, vertexCode);
-        openShaderFile(fragmentFile, fragmentCode);
-        if (!compile(vertexCode.data(), fragmentCode.data())) return false;
-        material->init(shaderProgram);
-        return true;
-    }
-
     bool compile(const char *vertexCode, const char *fragmentCode) {
         if (complete) return true;
         int success;
@@ -97,6 +88,20 @@ private:
         return true;
     }
 
+    bool init() {
+        string vertexCode, fragmentCode;
+        openShaderFile(vertexFile, vertexCode);
+        openShaderFile(fragmentFile, fragmentCode);
+        if (!compile(vertexCode.data(), fragmentCode.data())) return false;
+        glUseProgram(shaderProgram);
+        glUniform1i(glGetUniformLocation(shaderProgram, "material.diffuse"), 0);
+        glUniform1i(glGetUniformLocation(shaderProgram, "skybox"), 0);
+        glUniform1i(glGetUniformLocation(shaderProgram, "material.specular"), 1);
+        glUseProgram(0);
+        material->init();
+        return true;
+    }
+
     void use(const glm::mat4 model, const glm::mat4 &view, const glm::mat4 &projection,
              const glm::vec3 viewPos,
              const vector<DirectionLight *> &directionLights,
@@ -107,7 +112,7 @@ private:
         glDepthFunc(rendererMode);
 
         glUseProgram(shaderProgram);
-        material->use();
+        material->use(shaderProgram);
 
         setUniform("model", model);
         setUniform("view", view);
