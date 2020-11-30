@@ -13,11 +13,21 @@
 #include "object.h"
 #include "camera.h"
 
+// glfw: whenever the window size changed (by OS or user resize) this callback function executes
+// ---------------------------------------------------------------------------------------------
+void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+    // make sure the viewport matches the new window dimensions; note that width and
+    // height will be significantly larger than specified on retina displays.
+    glViewport(0, 0, width, height);
+}
+
 class Window {
 private:
     int width, height;
     string title;
     GLFWwindow *window{};
+
+
     vector<Object *> objectList;
     vector<DirectionLight *> directionLights;
     vector<PointLight *> pointLights;
@@ -45,7 +55,8 @@ private:
             return false;
         }
         glViewport(0, 0, width, height);
-//        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+        glEnable(GL_BLEND);
+        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
         return true;
     }
 
@@ -57,7 +68,7 @@ private:
             obj->render(camera->getView(), camera->getProjection(),
                         camera->transform.getPosition(),
                         directionLights, pointLights, spotLights);
-
+        camera->getTransform().setRotation(0, (float) glfwGetTime() * 10 - 90, 0);
 //            processInput(window);
         glfwSwapBuffers(window);
         glfwPollEvents();

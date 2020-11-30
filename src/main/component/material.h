@@ -17,9 +17,18 @@ class Material {
     unsigned shaderProgram;
 
     glm::vec3 color;
-    string diffuse, specular;
+    vector<string> diffuse, specular;
     unsigned diffuseId, specularId;
     float shininess;
+    bool flip;
+
+    static GLenum imageFormat(int nrChannels) {
+        if (nrChannels == 1) return GL_RED;
+        else if (nrChannels == 3) return GL_RGB;
+        else if (nrChannels == 4) return GL_RGBA;
+        cerr << "Unknown image file type" << endl;
+        exit(-1);
+    }
 
     static unsigned loadImage(const char *filePath) {
         unsigned texture;
@@ -32,25 +41,55 @@ class Material {
         int width, height, nrChannels;
         unsigned char *data = stbi_load(filePath, &width, &height, &nrChannels, 0);
         if (data) {
-            glTexImage2D(GL_TEXTURE_2D, 0, nrChannels == 3 ? GL_RGB : GL_RGBA, width, height, 0,
-                         nrChannels == 3 ? GL_RGB : GL_RGBA, GL_UNSIGNED_BYTE, data);
+            GLenum format = imageFormat(nrChannels);
+            glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
             glGenerateMipmap(GL_TEXTURE_2D);
         } else {
-            cerr << "Failed to load texture" << endl;
+            cerr << "Texture failed to load at path: " << *filePath << endl;
+            stbi_image_free(data);
             exit(-1);
         }
         stbi_image_free(data);
         return texture;
     }
 
+    static unsigned loadCubeImage(vector<string> &fileList) {
+        unsigned texture;
+        glGenTextures(1, &texture);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, texture);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+        int width, height, nrChannels;
+        for (unsigned int i = 0; i < fileList.size(); i++) {
+            unsigned char *data = stbi_load(fileList[i].c_str(), &width, &height, &nrChannels, 0);
+            if (data) {
+                GLenum format = imageFormat(nrChannels);
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, format, width, height,
+                             0, format, GL_UNSIGNED_BYTE, data);
+                stbi_image_free(data);
+            } else {
+                cerr << "Cube map texture failed to load at path: " << fileList[i] << endl;
+                stbi_image_free(data);
+                exit(-1);
+            }
+        }
+        return texture;
+    }
+
     void init(unsigned sp) {
         if (complete) return;
         shaderProgram = sp;
-        stbi_set_flip_vertically_on_load(true);
+        stbi_set_flip_vertically_on_load(flip);
         glUseProgram(shaderProgram);
-        if (!diffuse.empty()) diffuseId = loadImage(diffuse.data());
-        if (!specular.empty()) specularId = loadImage(specular.data());
+        if (diffuse.size() == 1) diffuseId = loadImage(diffuse.front().data());
+        else if (diffuse.size() == 6) diffuseId = loadCubeImage(diffuse);
+        if (specular.size() == 1) specularId = loadImage(specular.front().data());
+        else if (specular.size() == 6) specularId = loadCubeImage(specular);
         glUniform1i(glGetUniformLocation(shaderProgram, "material.diffuse"), 0);
+        glUniform1i(glGetUniformLocation(shaderProgram, "skybox"), 0);
         glUniform1i(glGetUniformLocation(shaderProgram, "material.specular"), 1);
         glUseProgram(0);
         complete = true;
@@ -60,35 +99,59 @@ class Material {
         int flag = 0;
         if (!diffuse.empty()) {
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, diffuseId);
+            if (diffuse.size() == 1) glBindTexture(GL_TEXTURE_2D, diffuseId);
+            else if (diffuse.size() == 6) glBindTexture(GL_TEXTURE_CUBE_MAP, diffuseId);
             flag |= 1;
         }
         if (!specular.empty()) {
             glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, specularId);
+            if (specular.size() == 1) glBindTexture(GL_TEXTURE_2D, specularId);
+            else if (specular.size() == 6) glBindTexture(GL_TEXTURE_CUBE_MAP, specularId);
             flag |= 2;
         }
-        glUseProgram(shaderProgram);
         glUniform3f(glGetUniformLocation(shaderProgram, "material.color"), color.r, color.g, color.b);
         glUniform1f(glGetUniformLocation(shaderProgram, "material.shininess"), shininess);
         glUniform1i(glGetUniformLocation(shaderProgram, "material.flag"), flag);
-        glUseProgram(0);
     }
 
 public:
     void setDiffuse(const string &t) {
-        diffuse = t;
+        diffuse.resize(1);
+        diffuse[0] = t;
         if (!complete) return;
         glUseProgram(shaderProgram);
-        if (!diffuse.empty()) diffuseId = loadImage(diffuse.data());
+        diffuseId = loadImage(t.data());
+        glUseProgram(0);
+    }
+
+    void setDiffuse(const string &rightImage, const string &leftImage,
+                    const string &topImage, const string &bottomImage,
+                    const string &backImage, const string &frontImage) {
+        diffuse.clear();
+        diffuse = {rightImage, leftImage, topImage, bottomImage, backImage, frontImage};
+        if (!complete) return;
+        glUseProgram(shaderProgram);
+        diffuseId = loadCubeImage(diffuse);
         glUseProgram(0);
     }
 
     void setSpecular(const string &t) {
-        specular = t;
+        specular.resize(1);
+        specular[0] = t;
         if (!complete) return;
         glUseProgram(shaderProgram);
-        if (!specular.empty()) specularId = loadImage(specular.data());
+        if (!specular.empty()) specularId = loadImage(t.data());
+        glUseProgram(0);
+    }
+
+    void setSpecular(const string &rightImage, const string &leftImage,
+                     const string &topImage, const string &bottomImage,
+                     const string &backImage, const string &frontImage) {
+        specular.clear();
+        specular = {rightImage, leftImage, topImage, bottomImage, backImage, frontImage};
+        if (!complete) return;
+        glUseProgram(shaderProgram);
+        specularId = loadCubeImage(specular);
         glUseProgram(0);
     }
 
@@ -97,6 +160,8 @@ public:
     }
 
     void setShininess(float s) { shininess = s; }
+
+    void setFlip(bool flag = true) { flip = flag; }
 };
 
 #endif //OPENGL_ENGINE_MATERIAL_H

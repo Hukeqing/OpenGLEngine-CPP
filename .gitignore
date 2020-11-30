@@ -45,3 +45,4 @@ cmake-build-release
 main.cpp
 *.jpg
 *.png
+/src/std/

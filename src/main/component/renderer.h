@@ -8,6 +8,22 @@
 #include "../define.h"
 #include "material.h"
 
+enum RendererValue {
+    TypeModel = 1,
+    TypeView = 2,
+    TypeProjection = 4,
+    TypeViewPos = 8,
+    TypeDirLight = 16,
+    TypePointLight = 32,
+    TypeSpotLight = 64,
+    TypeMaterial = 128,
+};
+
+enum RendererMode {
+    NormalMode = GL_LESS,
+    OverlapMode = GL_LEQUAL
+};
+
 class Renderer {
     friend Object;
 private:
@@ -15,6 +31,8 @@ private:
     const char *vertexFile, *fragmentFile;
     Material *material;
     int shaderProgram{};
+
+    RendererMode rendererMode = NormalMode;
 
     void openShaderFile(const char *filePath, string &res) {
         res.clear();
@@ -86,9 +104,10 @@ private:
              const vector<SpotLight *> &spotLights) {
         if (!complete && !init()) return;
 
-        material->use();
+        glDepthFunc(rendererMode);
 
         glUseProgram(shaderProgram);
+        material->use();
 
         setUniform("model", model);
         setUniform("view", view);
@@ -198,6 +217,8 @@ public:
     }
 
     void setMaterial(Material *m) { material = m; }
+
+    void setRendererMode(RendererMode mode) { rendererMode = mode; }
 
     void setUniform(const string &key, const glm::mat4 &value) {
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, key.data()), 1, GL_FALSE, glm::value_ptr(value));

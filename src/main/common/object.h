@@ -26,7 +26,7 @@ private:
         if (!complete) if (!init()) exit(-1);
         renderer->use(transform->getModel(), view, projection, viewPos, directionLights, pointLights, spotLights);
         filter->draw();
-//        renderer->unUse();
+        renderer->unUse();
     }
 
     bool init() {

@@ -37,4 +37,10 @@ class SpotLight;
 
 class Material;
 
+/**
+ * typedef name
+ */
+
+typedef glm::vec3 vector3;
+
 #endif //OPENGL_ENGINE_DEFINE_H
