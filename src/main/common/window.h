@@ -13,26 +13,38 @@
 #include "object.h"
 #include "camera.h"
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
-    // make sure the viewport matches the new window dimensions; note that width and
-    // height will be significantly larger than specified on retina displays.
-    glViewport(0, 0, width, height);
-}
+void inputKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode);
+
+void inputScrollCallback(GLFWwindow *window, double xOffset, double yOffset);
+
+void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
 class Window {
+    friend void inputKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode);
+
+    friend void inputScrollCallback(GLFWwindow *window, double xOffset, double yOffset);
+
+    friend void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+
+//public:
 private:
+    static unordered_map<GLFWwindow *, Window *> winId2winClass;
     int width, height;
     string title;
     GLFWwindow *window{};
-
 
     vector<Object *> objectList;
     vector<DirectionLight *> directionLights;
     vector<PointLight *> pointLights;
     vector<SpotLight *> spotLights;
     Camera *camera{};
+
+    function<void()> startFunc = nullptr, updateFunc = nullptr;
+    function<void(int, int)> onWindowResize = nullptr, onMouseScroll = nullptr;
+    float lastTime{}, deltaTime{};
+
+    // Input
+    vector<KeyType> keys;
 
     bool init() {
         glfwInit();
@@ -42,7 +54,6 @@ private:
 #ifdef __APPLE__
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
-
         window = glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
         if (window == nullptr) {
             cerr << "Failed to create GLFW window" << endl;
@@ -54,9 +65,6 @@ private:
             cout << "Failed to initialize GLAD" << endl;
             return false;
         }
-        glViewport(0, 0, width, height);
-        glEnable(GL_BLEND);
-        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
         return true;
     }
 
@@ -65,11 +73,13 @@ private:
         glClear((unsigned) GL_COLOR_BUFFER_BIT | (unsigned) GL_DEPTH_BUFFER_BIT);
 
         for (auto &obj : objectList)
-            obj->render(camera->getView(), camera->getProjection(),
+            obj->render(camera->getView(),
+                        camera->getProjection(),
                         camera->transform.getPosition(),
-                        directionLights, pointLights, spotLights);
-//        objectList[0]->getTransform().setRotation((float) glfwGetTime() / 5, (float) glfwGetTime() / 3, 0);
-//            processInput(window);
+                        directionLights,
+                        pointLights,
+                        spotLights);
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -83,15 +93,37 @@ public:
 
     bool run() {
         if (!init()) return false;
+        winId2winClass.insert({window, this});
 
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_FRAMEBUFFER_SRGB);
+        glEnable(GL_BLEND);
 
-        while (!glfwWindowShouldClose(window)) loop();
+        glViewport(0, 0, width, height);
+
+        glfwSetKeyCallback(window, inputKeyCallback);
+        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+        keys.resize(1024);
+
+        if (startFunc != nullptr) startFunc();
+
+        lastTime = (float) glfwGetTime();
+
+        while (!glfwWindowShouldClose(window)) {
+            auto tmp = (float) glfwGetTime();
+            deltaTime = tmp - lastTime;
+            lastTime = tmp;
+            if (updateFunc != nullptr) updateFunc();
+            loop();
+        }
+
         cout << glGetError() << endl;
         glfwTerminate();
         return true;
     }
 
+    /*-----add thing into window-----*/
     void addObj(Object *obj) { objectList.push_back(obj); }
 
     void addDirLight(DirectionLight *light) { directionLights.push_back(light); }
@@ -99,6 +131,33 @@ public:
     void addPointLight(PointLight *light) { pointLights.push_back(light); }
 
     void addSpotLight(SpotLight *light) { spotLights.push_back(light); }
+
+    /*-----set runtime behave-----*/
+    void setStart(function<void()> &f) { startFunc = f; }
+
+    void setUpdate(function<void()> &f) { updateFunc = f; }
+
+    void setOnWindowResize(function<void(int, int)> &f) { onWindowResize = f; }
 };
+
+unordered_map<GLFWwindow *, Window *> Window::winId2winClass;
+
+void inputKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode) {
+    auto winClass = Window::winId2winClass.find(window)->second;
+    assert(key >= 0 && key < winClass->keys.size());
+    if (action == GLFW_PRESS) winClass->keys[key] = Press;
+    else if (action == GLFW_RELEASE) winClass->keys[key] = Release;
+}
+
+void inputScrollCallback(GLFWwindow *window, double xOffset, double yOffset) {
+    auto winClass = Window::winId2winClass.find(window)->second;
+    if (winClass->onMouseScroll != nullptr) winClass->onMouseScroll(xOffset, yOffset);
+
+}
+
+void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+    auto winClass = Window::winId2winClass.find(window)->second;
+    if (winClass->onWindowResize != nullptr) winClass->onWindowResize(width, height);
+}
 
 #endif //OPENGL_ENGINE_WINDOW_H
