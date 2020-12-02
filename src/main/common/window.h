@@ -28,6 +28,7 @@ class Window {
 
 //public:
 private:
+    static bool glfwInitComplete;
     static unordered_map<GLFWwindow *, Window *> winId2winClass;
     int width, height;
     string title;
@@ -41,12 +42,11 @@ private:
 
     function<void()> startFunc = nullptr, updateFunc = nullptr;
     function<void(int, int)> onWindowResize = nullptr, onMouseScroll = nullptr;
+    function<void(int, bool)> onKeyEvent = nullptr;
     float lastTime{}, deltaTime{};
 
-    // Input
-    vector<KeyType> keys;
-
-    bool init() {
+    static void initGL() {
+        if (glfwInitComplete) return;
         glfwInit();
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -54,6 +54,11 @@ private:
 #ifdef __APPLE__
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
+        glfwInitComplete = true;
+    }
+
+    bool init() {
+        initGL();
         window = glfwCreateWindow(width, height, title.data(), nullptr, nullptr);
         if (window == nullptr) {
             cerr << "Failed to create GLFW window" << endl;
@@ -104,8 +109,6 @@ public:
         glfwSetKeyCallback(window, inputKeyCallback);
         glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-        keys.resize(1024);
-
         if (startFunc != nullptr) startFunc();
 
         lastTime = (float) glfwGetTime();
@@ -123,6 +126,10 @@ public:
         return true;
     }
 
+    void close() {
+        glfwSetWindowShouldClose(window, true);
+    }
+
     /*-----add thing into window-----*/
     void addObj(Object *obj) { objectList.push_back(obj); }
 
@@ -138,21 +145,21 @@ public:
     void setUpdate(function<void()> &f) { updateFunc = f; }
 
     void setOnWindowResize(function<void(int, int)> &f) { onWindowResize = f; }
+
+    void setOnKeyEvent(const function<void(int, bool)> &f) { onKeyEvent = f; }
 };
 
 unordered_map<GLFWwindow *, Window *> Window::winId2winClass;
+bool Window::glfwInitComplete = false;
 
 void inputKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode) {
     auto winClass = Window::winId2winClass.find(window)->second;
-    assert(key >= 0 && key < winClass->keys.size());
-    if (action == GLFW_PRESS) winClass->keys[key] = Press;
-    else if (action == GLFW_RELEASE) winClass->keys[key] = Release;
+    if (winClass->onKeyEvent != nullptr) winClass->onKeyEvent(key, action);
 }
 
 void inputScrollCallback(GLFWwindow *window, double xOffset, double yOffset) {
     auto winClass = Window::winId2winClass.find(window)->second;
     if (winClass->onMouseScroll != nullptr) winClass->onMouseScroll(xOffset, yOffset);
-
 }
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
