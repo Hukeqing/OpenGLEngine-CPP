@@ -13,6 +13,16 @@
 #include "object.h"
 #include "camera.h"
 
+/**
+ * 启用 N 卡独显
+ */
+extern "C" { _declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001; }
+
+/**
+ * 启用 A 卡独显
+ */
+// extern "C" { __declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 0x00000001; }
+
 void inputKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode);
 
 void inputScrollCallback(GLFWwindow *window, double xOffset, double yOffset);
@@ -129,6 +139,9 @@ public:
     void close() {
         glfwSetWindowShouldClose(window, true);
     }
+
+    /*-----set window attribute-----*/
+    void setWindowTitle(const string &t) { title = t; }
 
     /*-----add thing into window-----*/
     void addObj(Object *obj) { objectList.push_back(obj); }

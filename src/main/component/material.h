@@ -78,7 +78,6 @@ class Material {
         return texture;
     }
 
-
     void init() {
         if (complete) return;
         stbi_set_flip_vertically_on_load(flip);
