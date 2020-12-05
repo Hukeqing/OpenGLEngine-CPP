@@ -16,8 +16,8 @@ class Material {
     bool complete = false;
 
     glm::vec3 color;
-    vector<string> diffuse, specular;
-    unsigned diffuseId, specularId;
+    vector<string> diffuse, specular, normalMap;
+    unsigned diffuseId, specularId, normalMapId;
     float shininess;
     bool flip;
 
@@ -85,6 +85,8 @@ class Material {
         else if (diffuse.size() == 6) diffuseId = loadCubeImage(diffuse);
         if (specular.size() == 1) specularId = loadImage(specular.front().data());
         else if (specular.size() == 6) specularId = loadCubeImage(specular);
+        if (normalMap.size() == 1) normalMapId = loadImage(normalMap.front().data());
+        else if (normalMap.size() == 6) normalMapId = loadCubeImage(normalMap);
         complete = true;
     }
 
@@ -101,6 +103,12 @@ class Material {
             if (specular.size() == 1) glBindTexture(GL_TEXTURE_2D, specularId);
             else if (specular.size() == 6) glBindTexture(GL_TEXTURE_CUBE_MAP, specularId);
             flag |= 2;
+        }
+        if (!normalMap.empty()) {
+            glActiveTexture(GL_TEXTURE2);
+            if (normalMap.size() == 1) glBindTexture(GL_TEXTURE_2D, normalMapId);
+            else if (normalMap.size() == 6) glBindTexture(GL_TEXTURE_CUBE_MAP, normalMapId);
+            flag |= 4;
         }
         glUniform3f(glGetUniformLocation(shaderProgram, "material.color"), color.r, color.g, color.b);
         glUniform1f(glGetUniformLocation(shaderProgram, "material.shininess"), shininess);
@@ -128,7 +136,7 @@ public:
         specular.resize(1);
         specular[0] = t;
         if (!complete) return;
-        if (!specular.empty()) specularId = loadImage(t.data());
+        specularId = loadImage(t.data());
     }
 
     void setSpecular(const string &rightImage, const string &leftImage,
@@ -138,6 +146,22 @@ public:
         specular = {rightImage, leftImage, topImage, bottomImage, backImage, frontImage};
         if (!complete) return;
         specularId = loadCubeImage(specular);
+    }
+
+    void setNormalMap(const string &t) {
+        normalMap.resize(1);
+        normalMap[0] = t;
+        if (!complete) return;
+        normalMapId = loadImage(t.data());
+    }
+
+    void setNormalMap(const string &rightImage, const string &leftImage,
+                      const string &topImage, const string &bottomImage,
+                      const string &backImage, const string &frontImage) {
+        normalMap.clear();
+        normalMap = {rightImage, leftImage, topImage, bottomImage, backImage, frontImage};
+        if (!complete) return;
+        normalMapId = loadCubeImage(normalMap);
     }
 
     void setColor(float r, float g, float b) {

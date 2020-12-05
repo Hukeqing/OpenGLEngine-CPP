@@ -13,7 +13,7 @@ class Filter {
 private:
     bool complete = false;
     Mesh *mesh;
-    unsigned int VBO, VAO;
+    unsigned int VBO{}, VAO{};
 
     void build() {
         if (complete) return;
@@ -32,7 +32,7 @@ private:
 
     void draw() const {
         glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, mesh->vertices.size());
+        glDrawArrays(GL_TRIANGLES, 0, mesh->bufferSize / 14);
         glBindVertexArray(0);
     }
 

@@ -5,6 +5,7 @@ struct Material {
     vec3 color;
     sampler2D diffuse;
     sampler2D specular;
+    sampler2D normalMap;
     float shininess;
     int flag;
 };
@@ -54,6 +55,7 @@ struct SpotLight {
 in vec3 FragPos;
 in vec3 Normal;
 in vec2 TexCoords;
+in mat3 TBN;
 
 uniform vec3 viewPos;
 
@@ -74,7 +76,7 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec
 
 void main()
 {
-    vec3 norm = normalize(Normal);
+    vec3 norm = (material.flag & 4) != 0 ? normalize(TBN * (texture(material.normalMap, TexCoords).rgb * 2.0 - 1.0)) : normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
     vec3 result = vec3(0, 0, 0);
     vec3 diffuseValue = ((material.flag & 1) != 0 ? vec3(texture(material.diffuse, TexCoords)) : vec3(1)) * material.color;

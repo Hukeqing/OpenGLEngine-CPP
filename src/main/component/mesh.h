@@ -16,8 +16,8 @@ class Mesh {
 
     bool complete = false;
     vector<Vertex> vertices;
-    float *buffer;
-    int bufferSize;
+    float *buffer{};
+    int bufferSize{};
 
     void build() {
         if (complete) return;
@@ -28,7 +28,7 @@ class Mesh {
          *  8 - 11 tangent
          * 11 - 14 bitangent
          */
-        bufferSize = vertices.size() * 14;
+        bufferSize = (int) vertices.size() * 14;
         buffer = new float[vertices.size() * 14];
         int face = (int) vertices.size() / 3;
         for (int i = 0; i < face; ++i) {

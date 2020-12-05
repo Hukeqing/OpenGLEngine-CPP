@@ -102,6 +102,7 @@ private:
         glUniform1i(glGetUniformLocation(shaderProgram, "material.diffuse"), 0);
         glUniform1i(glGetUniformLocation(shaderProgram, "skybox"), 0);
         glUniform1i(glGetUniformLocation(shaderProgram, "material.specular"), 1);
+        glUniform1i(glGetUniformLocation(shaderProgram, "material.normalMap"), 2);
         glUseProgram(0);
         material->init();
         return true;
