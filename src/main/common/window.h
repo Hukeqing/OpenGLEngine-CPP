@@ -30,14 +30,13 @@ void inputScrollCallback(GLFWwindow *window, double xOffset, double yOffset);
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
 class Window {
+private:
     friend void inputKeyCallback(GLFWwindow *window, int key, int scancode, int action, int mode);
 
     friend void inputScrollCallback(GLFWwindow *window, double xOffset, double yOffset);
 
     friend void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
-//public:
-private:
     static bool glfwInitComplete;
     static unordered_map<GLFWwindow *, Window *> winId2winClass;
     int width, height;
@@ -131,7 +130,7 @@ public:
             loop();
         }
 
-        cout << glGetError() << endl;
+        cerr << glGetError() << endl;
         glfwTerminate();
         return true;
     }
@@ -153,13 +152,16 @@ public:
     void addSpotLight(SpotLight *light) { spotLights.push_back(light); }
 
     /*-----set runtime behave-----*/
-    void setStart(function<void()> &f) { startFunc = f; }
+    void setStart(const function<void()> &f) { startFunc = f; }
 
-    void setUpdate(function<void()> &f) { updateFunc = f; }
+    void setUpdate(const function<void()> &f) { updateFunc = f; }
 
-    void setOnWindowResize(function<void(int, int)> &f) { onWindowResize = f; }
+    void setOnWindowResize(const function<void(int, int)> &f) { onWindowResize = f; }
 
     void setOnKeyEvent(const function<void(int, bool)> &f) { onKeyEvent = f; }
+
+    /*-----get window attribute-----*/
+    float getDeltaTime() const { return deltaTime; }
 };
 
 unordered_map<GLFWwindow *, Window *> Window::winId2winClass;

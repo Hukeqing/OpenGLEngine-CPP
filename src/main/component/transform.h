@@ -9,7 +9,7 @@
 
 class Transform {
     friend Object;
-    glm::vec3 position{}, rotation{}, scale{}, forward{}, up{}, right{};
+    glm::vec3 position{}, rotation{}, scale{}, forward{}, up{}, left{};
 
     void update() {
         forward = glm::vec3(0);
@@ -17,8 +17,8 @@ class Transform {
         forward.y = glm::sin(glm::radians(rotation.x));
         forward.z = glm::cos(glm::radians(rotation.x)) * glm::cos(glm::radians(rotation.y));
         forward = glm::normalize(forward);
-        right = glm::normalize(glm::cross(glm::vec3(0, 1, 0), forward));
-        up = glm::normalize(glm::cross(forward, right));
+        left = glm::normalize(glm::cross(glm::vec3(0, 1, 0), forward));
+        up = glm::normalize(glm::cross(forward, left));
     }
 
     glm::mat4 getModel() const {
@@ -65,7 +65,7 @@ public:
 
     glm::vec3 getUp() const { return up; }
 
-    glm::vec3 getLeft() const { return right; }
+    glm::vec3 getLeft() const { return left; }
 };
 
 #endif //OPENGL_ENGINE_TRANSFORM_H

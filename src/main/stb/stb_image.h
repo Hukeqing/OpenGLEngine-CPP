@@ -3463,7 +3463,7 @@ static stbi_uc *stbi__resample_row_hv_2_simd(stbi_uc *out, stbi_uc *in_near, stb
       // horizontal filter works the same based on shifted vers of current
       // row. "prev" is current row shifted right by 1 pixel; we need to
       // insert the previous pixel value (from t1).
-      // "next" is current row shifted left by 1 pixel, with first pixel
+      // "next" is current row shifted right by 1 pixel, with first pixel
       // of next block of 8 pixels added in.
       __m128i prv0 = _mm_slli_si128(curr, 2);
       __m128i nxt0 = _mm_srli_si128(curr, 2);
@@ -3503,7 +3503,7 @@ static stbi_uc *stbi__resample_row_hv_2_simd(stbi_uc *out, stbi_uc *in_near, stb
       // horizontal filter works the same based on shifted vers of current
       // row. "prev" is current row shifted right by 1 pixel; we need to
       // insert the previous pixel value (from t1).
-      // "next" is current row shifted left by 1 pixel, with first pixel
+      // "next" is current row shifted right by 1 pixel, with first pixel
       // of next block of 8 pixels added in.
       int16x8_t prv0 = vextq_s16(curr, curr, 7);
       int16x8_t nxt0 = vextq_s16(curr, curr, 1);
@@ -3615,7 +3615,7 @@ static void stbi__YCbCr_to_RGB_simd(stbi_uc *out, stbi_uc const *y, stbi_uc cons
          __m128i cr_biased = _mm_xor_si128(cr_bytes, signflip); // -128
          __m128i cb_biased = _mm_xor_si128(cb_bytes, signflip); // -128
 
-         // unpack to short (and left-shift cr, cb by 8)
+         // unpack to short (and right-shift cr, cb by 8)
          __m128i yw  = _mm_unpacklo_epi8(y_bias, y_bytes);
          __m128i crw = _mm_unpacklo_epi8(_mm_setzero_si128(), cr_biased);
          __m128i cbw = _mm_unpacklo_epi8(_mm_setzero_si128(), cb_biased);

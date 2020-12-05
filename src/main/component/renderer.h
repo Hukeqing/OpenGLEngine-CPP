@@ -6,7 +6,12 @@
 #define OPENGL_ENGINE_RENDERER_H
 
 #include "../define.h"
+
 #include "material.h"
+#include "light.h"
+#include "direction_light.h"
+#include "point_light.h"
+#include "spot_light.h"
 
 enum RendererValue {
     TypeModel = 1,
