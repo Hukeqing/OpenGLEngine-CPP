@@ -15,7 +15,7 @@ class Material {
     friend Renderer;
     bool complete = false;
 
-    glm::vec3 color;
+    vector3 color;
     vector<string> diffuse, specular, normalMap;
     unsigned diffuseId, specularId, normalMapId;
     float shininess;
@@ -165,7 +165,7 @@ public:
     }
 
     void setColor(float r, float g, float b) {
-        color = glm::vec3(r, g, b);
+        color = vector3(r, g, b);
     }
 
     void setShininess(float s) { shininess = s; }

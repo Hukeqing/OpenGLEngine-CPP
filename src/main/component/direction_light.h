@@ -10,7 +10,7 @@
 
 class DirectionLight : public Light {
 public:
-    glm::vec3 direction;
+    vector3 direction;
 };
 
 #endif //OPENGL_ENGINE_DIRECTION_LIGHT_H

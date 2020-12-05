@@ -37,7 +37,7 @@ private:
     }
 
 public:
-    Filter(Mesh *m) { mesh = m; }
+    explicit Filter(Mesh *m) { mesh = m; }
 };
 
 #endif //OPENGL_ENGINE_FILTER_H

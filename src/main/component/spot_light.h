@@ -10,7 +10,7 @@
 
 class SpotLight : public Light {
 public:
-    glm::vec3 position, direction;
+    vector3 position, direction;
     float cutOff, outerCutOff;
     float constant, linear, quadratic;
 };

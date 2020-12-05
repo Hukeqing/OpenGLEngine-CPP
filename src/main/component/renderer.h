@@ -109,7 +109,7 @@ private:
     }
 
     void use(const glm::mat4 model, const glm::mat4 &view, const glm::mat4 &projection,
-             const glm::vec3 viewPos,
+             const vector3 viewPos,
              const vector<DirectionLight *> &directionLights,
              const vector<PointLight *> &pointLights,
              const vector<SpotLight *> &spotLights) {

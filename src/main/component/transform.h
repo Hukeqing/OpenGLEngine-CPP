@@ -9,24 +9,24 @@
 
 class Transform {
     friend Object;
-    glm::vec3 position{}, rotation{}, scale{}, forward{}, up{}, left{};
+    vector3 position{}, rotation{}, scale{}, forward{}, up{}, left{};
 
     void update() {
-        forward = glm::vec3(0);
+        forward = vector3(0);
         forward.x = -glm::sin(glm::radians(rotation.y));
         forward.y = glm::sin(glm::radians(rotation.x));
         forward.z = glm::cos(glm::radians(rotation.x)) * glm::cos(glm::radians(rotation.y));
         forward = glm::normalize(forward);
-        left = glm::normalize(glm::cross(glm::vec3(0, 1, 0), forward));
+        left = glm::normalize(glm::cross(vector3(0, 1, 0), forward));
         up = glm::normalize(glm::cross(forward, left));
     }
 
     glm::mat4 getModel() const {
         glm::mat4 model(1);
         model = glm::translate(model, position);
-        model = glm::rotate(model, rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
-        model = glm::rotate(model, rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
-        model = glm::rotate(model, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+        model = glm::rotate(model, rotation.x, vector3(1.0f, 0.0f, 0.0f));
+        model = glm::rotate(model, rotation.y, vector3(0.0f, 1.0f, 0.0f));
+        model = glm::rotate(model, rotation.z, vector3(0.0f, 0.0f, 1.0f));
         model = glm::scale(model, scale);
         return model;
     }
@@ -55,17 +55,17 @@ public:
         scale.z = z;
     }
 
-    glm::vec3 getPosition() const { return position; }
+    vector3 getPosition() const { return position; }
 
-    glm::vec3 getRotation() const { return rotation; }
+    vector3 getRotation() const { return rotation; }
 
-    glm::vec3 getScale() const { return scale; }
+    vector3 getScale() const { return scale; }
 
-    glm::vec3 getForward() const { return forward; }
+    vector3 getForward() const { return forward; }
 
-    glm::vec3 getUp() const { return up; }
+    vector3 getUp() const { return up; }
 
-    glm::vec3 getLeft() const { return left; }
+    vector3 getLeft() const { return left; }
 };
 
 #endif //OPENGL_ENGINE_TRANSFORM_H

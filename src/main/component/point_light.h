@@ -10,7 +10,7 @@
 
 class PointLight : public Light {
 public:
-    glm::vec3 position;
+    vector3 position;
     float constant, linear, quadratic;
 };
 
