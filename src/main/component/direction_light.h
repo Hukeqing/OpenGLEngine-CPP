@@ -11,6 +11,11 @@
 class DirectionLight : public Light {
 public:
     vector3 direction;
+
+    DirectionLight() = default;
+
+    DirectionLight(float a, float d, float s, const vector3 c, const vector3 &dir) : Light(a, d, s, c),
+                                                                                     direction(dir) {}
 };
 
 #endif //OPENGL_ENGINE_DIRECTION_LIGHT_H

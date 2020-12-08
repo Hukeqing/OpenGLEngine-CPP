@@ -100,6 +100,7 @@ vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir, vec3 dif, vec3 spe)
     // diffuse shading
     float diff = max(dot(normal, lightDir), 0.0);
     // specular shading
+    // Phong
     // vec3 reflectDir = reflect(-lightDir, normal);
     // float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     // Blinn-Phong
@@ -119,6 +120,7 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir, v
     // diffuse shading
     float diff = max(dot(normal, lightDir), 0.0);
     // specular shading
+    // Phong
     // vec3 reflectDir = reflect(-lightDir, normal);
     // float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     // Blinn-Phong
@@ -144,6 +146,7 @@ vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir, vec
     // diffuse shading
     float diff = max(dot(normal, lightDir), 0.0);
     // specular shading
+    // Phong
     // vec3 reflectDir = reflect(-lightDir, normal);
     // float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
     // Blinn-Phong

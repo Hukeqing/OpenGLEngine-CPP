@@ -235,8 +235,8 @@ public:
         glUniformMatrix4fv(glGetUniformLocation(shaderProgram, key.data()), 1, GL_FALSE, glm::value_ptr(value));
     }
 
-    void setUniform(const string &key, const int value) {
-        glUniform1i(glGetUniformLocation(shaderProgram, key.data()), value);
+    void setUniform(const string &key, int a) {
+        glUniform1i(glGetUniformLocation(shaderProgram, key.data()), a);
     }
 
     void setUniform(const string &key, int a, int b) {
@@ -247,12 +247,16 @@ public:
         glUniform3i(glGetUniformLocation(shaderProgram, key.data()), a, b, c);
     }
 
+    void setUniform(const string &key, int a, int b, int c, int d) {
+        glUniform4i(glGetUniformLocation(shaderProgram, key.data()), a, b, c, d);
+    }
+
     void setUniform(const string &key, float a, float b, float c) {
         glUniform3f(glGetUniformLocation(shaderProgram, key.data()), a, b, c);
     }
 
-    void setUniform(const string &key, int a, int b, int c, int d) {
-        glUniform4i(glGetUniformLocation(shaderProgram, key.data()), a, b, c, d);
+    void setUniform(const string &key, float a, float b, float c, float d) {
+        glUniform4f(glGetUniformLocation(shaderProgram, key.data()), a, b, c, d);
     }
 };
 

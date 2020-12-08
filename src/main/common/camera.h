@@ -11,7 +11,7 @@
 class Camera {
     friend Window;
 private:
-    float left{}, right{}, top{}, bottom{}, nearPlane{}, farPlane{}, fov{};
+    float left = 0, right = 800, top = 0, bottom = 600, nearPlane = 0.1f, farPlane = 1000.0f, fov = 45;
     bool useOrthographic = false;
     Transform transform;
 

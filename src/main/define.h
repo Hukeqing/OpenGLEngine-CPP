@@ -37,6 +37,7 @@ class SpotLight;
 
 class Material;
 
+class Mesh;
 /**
  * typedef name
  */

@@ -22,6 +22,6 @@ add_executable(OpenGLEngine
         src/main/component/point_light.h
         src/main/component/spot_light.h
         src/main/component/material.h
-        src/main/component/mesh.h)
+        src/main/component/mesh.h src/main/preset/create.h)
 
 target_link_libraries(OpenGLEngine ${PROJECT_SOURCE_DIR}/lib/glfw3.dll)

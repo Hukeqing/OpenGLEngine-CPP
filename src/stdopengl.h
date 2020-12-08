@@ -21,4 +21,6 @@
 #include "main/component/spot_light.h"
 #include "main/component/transform.h"
 
+#include "main/preset/create.h"
+
 #endif //OPENGL_ENGINE_STD_OPENGL_H

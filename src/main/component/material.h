@@ -116,6 +116,16 @@ class Material {
     }
 
 public:
+    Material() {
+        complete = false;
+        color = vector3(1, 1, 1);
+        diffuse.clear();
+        specular.clear();
+        normalMap.clear();
+        shininess = 1.0f;
+        flip = false;
+    }
+
     void setDiffuse(const string &t) {
         diffuse.resize(1);
         diffuse[0] = t;

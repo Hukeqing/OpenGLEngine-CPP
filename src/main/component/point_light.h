@@ -12,6 +12,12 @@ class PointLight : public Light {
 public:
     vector3 position;
     float constant, linear, quadratic;
+
+    PointLight() = default;
+
+    PointLight(float a, float d, float s, const vector3 c,
+               const vector3 &pos, float con, float lin, float qua) : Light(a, d, s, c), position(pos), constant(con),
+                                                                      linear(lin), quadratic(qua) {}
 };
 
 #endif //OPENGL_ENGINE_POINT_LIGHT_H

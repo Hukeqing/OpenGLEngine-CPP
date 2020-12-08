@@ -33,6 +33,7 @@ class Transform {
 
 public:
     Transform() {
+        scale = vector3(1, 1, 1);
         update();
     }
 
