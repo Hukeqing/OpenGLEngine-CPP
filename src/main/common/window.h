@@ -27,7 +27,7 @@ void inputKeyCallback(GLFWwindow *window, int key, int scancode, int action, int
 
 void inputScrollCallback(GLFWwindow *window, double xOffset, double yOffset);
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+void resizeCallback(GLFWwindow *window, int width, int height);
 
 class Window {
 private:
@@ -35,7 +35,7 @@ private:
 
     friend void inputScrollCallback(GLFWwindow *window, double xOffset, double yOffset);
 
-    friend void framebuffer_size_callback(GLFWwindow *window, int width, int height);
+    friend void resizeCallback(GLFWwindow *window, int width, int height);
 
     static bool glfwInitComplete;
     static unordered_map<GLFWwindow *, Window *> winId2winClass;
@@ -50,7 +50,7 @@ private:
     Camera *camera{};
 
     function<void()> startFunc = nullptr, updateFunc = nullptr;
-    function<void(int, int)> onWindowResize = nullptr, onMouseScroll = nullptr;
+    function<void(double, double)> onWindowResize = nullptr, onMouseScroll = nullptr;
     function<void(int, bool)> onKeyEvent = nullptr;
     float lastTime{}, deltaTime{};
 
@@ -116,7 +116,8 @@ public:
         glViewport(0, 0, width, height);
 
         glfwSetKeyCallback(window, inputKeyCallback);
-        glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+        glfwSetScrollCallback(window, inputScrollCallback);
+        glfwSetFramebufferSizeCallback(window, resizeCallback);
 
         if (startFunc != nullptr) startFunc();
 
@@ -177,7 +178,7 @@ void inputScrollCallback(GLFWwindow *window, double xOffset, double yOffset) {
     if (winClass->onMouseScroll != nullptr) winClass->onMouseScroll(xOffset, yOffset);
 }
 
-void framebuffer_size_callback(GLFWwindow *window, int width, int height) {
+void resizeCallback(GLFWwindow *window, int width, int height) {
     auto winClass = Window::winId2winClass.find(window)->second;
     if (winClass->onWindowResize != nullptr) winClass->onWindowResize(width, height);
 }

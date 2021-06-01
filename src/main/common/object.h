@@ -47,6 +47,8 @@ public:
     void setTransform(Transform *t) { transform = t; }
 
     Transform &getTransform() { return *transform; }
+
+    Renderer &getRenderer() { return *renderer; }
 };
 
 #endif //OPENGL_ENGINE_OBJECT_H

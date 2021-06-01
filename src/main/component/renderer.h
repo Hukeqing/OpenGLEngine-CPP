@@ -258,6 +258,8 @@ public:
     void setUniform(const string &key, float a, float b, float c, float d) {
         glUniform4f(glGetUniformLocation(shaderProgram, key.data()), a, b, c, d);
     }
+
+    Material &getMarerial() { return *material; }
 };
 
 #endif //OPENGL_ENGINE_RENDERER_H
